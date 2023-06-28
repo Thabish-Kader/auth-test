@@ -40,29 +40,33 @@ const authOptions: NextAuthOptions = {
 				session.user!.subscriptionId = customers[0].subscriptionId;
 				return session;
 			}
+			try {
+				await stripe.customers
+					.create({
+						email: session.user?.email!,
+						name: session.user?.name!,
+					})
+					.then(async (customer) => {
+						session!.user!.id = customer.id;
+						session!.user!.stripeCustomerId = customer.id;
+						session!.user!.isActive = false;
 
-			await stripe.customers
-				.create({
-					email: session.user?.email!,
-					name: session.user?.name!,
-				})
-				.then(async (customer) => {
-					session!.user!.id = customer.id;
-					session!.user!.stripeCustomerId = customer.id;
-					session!.user!.isActive = false;
+						const createUserParmas = {
+							TableName: process.env.TABLE_NAME,
+							Item: {
+								...customer,
+								isActive: false,
+							},
+						};
 
-					const createUserParmas = {
-						TableName: process.env.TABLE_NAME,
-						Item: {
-							...customer,
-							isActive: false,
-						},
-					};
+						await docClient.send(new PutCommand(createUserParmas));
+					});
 
-					await docClient.send(new PutCommand(createUserParmas));
-				});
-
-			return session;
+				return session;
+			} catch (error) {
+				console.log(error);
+				throw error;
+			}
 		},
 	},
 };
