@@ -13,16 +13,19 @@ const authOptions: NextAuthOptions = {
 	secret: process.env.NEXTAUTH_SECRET,
 	callbacks: {
 		async session({ session }) {
-			const createUserParmas = {
-				TableName: process.env.TABLE_NAME,
-				Item: {
-					email: "test@email.com",
-					name: "testman",
-					isActive: false,
-				},
-			};
-
-			await docClient.send(new PutCommand(createUserParmas));
+			try {
+				const createUserParmas = {
+					TableName: process.env.TABLE_NAME,
+					Item: {
+						email: "test@email.com",
+						name: "testman",
+						isActive: false,
+					},
+				};
+				await docClient.send(new PutCommand(createUserParmas));
+			} catch (error) {
+				console.log(error);
+			}
 			return session;
 		},
 	},
