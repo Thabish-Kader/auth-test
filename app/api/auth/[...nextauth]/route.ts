@@ -16,7 +16,8 @@ const authOptions: NextAuthOptions = {
 			const createUserParmas = {
 				TableName: process.env.TABLE_NAME,
 				Item: {
-					name: "test",
+					email: "test@email.com",
+					name: "testman",
 					isActive: false,
 				},
 			};
