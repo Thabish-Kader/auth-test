@@ -1,13 +1,12 @@
 import Image from "next/image";
 import { Navbar } from "./Navbar";
+import { AuthButton } from "./AuthButton";
 
 export default function Home() {
 	return (
 		<>
 			<Navbar />
-			<main className="flex min-h-screen flex-col items-center justify-between p-24">
-				<h1>Auth test</h1>
-			</main>
+			<main className="flex min-h-screen flex-col items-center justify-between p-24"></main>
 		</>
 	);
 }

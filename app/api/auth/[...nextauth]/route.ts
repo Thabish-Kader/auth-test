@@ -3,6 +3,11 @@ import { TCustomer } from "@/app/types";
 import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+	apiVersion: "2022-11-15",
+});
 
 const authOptions: NextAuthOptions = {
 	providers: [
@@ -36,21 +41,27 @@ const authOptions: NextAuthOptions = {
 				return session;
 			}
 
-			const email = session.user?.email!;
-			try {
-				const createUserParmas = {
-					TableName: process.env.TABLE_NAME,
-					Item: {
-						email: email,
-						stripeCustomerId: "123",
-						isActive: false,
-						subscriptionId: "456",
-					},
-				};
-				await docClient.send(new PutCommand(createUserParmas));
-			} catch (error) {
-				console.log(error);
-			}
+			await stripe.customers
+				.create({
+					email: session.user?.email!,
+					name: session.user?.name!,
+				})
+				.then(async (customer) => {
+					session!.user!.id = customer.id;
+					session!.user!.stripeCustomerId = customer.id;
+					session!.user!.isActive = false;
+
+					const createUserParmas = {
+						TableName: process.env.TABLE_NAME,
+						Item: {
+							...customer,
+							isActive: false,
+						},
+					};
+
+					await docClient.send(new PutCommand(createUserParmas));
+				});
+
 			return session;
 		},
 	},
