@@ -13,12 +13,14 @@ const authOptions: NextAuthOptions = {
 	secret: process.env.NEXTAUTH_SECRET,
 	callbacks: {
 		async session({ session }) {
+			const name = session.user?.name;
+			const email = session.user?.email;
 			try {
 				const createUserParmas = {
 					TableName: process.env.TABLE_NAME,
 					Item: {
-						email: "test@email.com",
-						name: "testman",
+						email: email,
+						name: name,
 						isActive: false,
 					},
 				};
