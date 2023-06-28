@@ -1,4 +1,5 @@
-// @ts-nocheck
+import docClient from "@/app/dynamodb";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
@@ -12,10 +13,15 @@ const authOptions: NextAuthOptions = {
 	secret: process.env.NEXTAUTH_SECRET,
 	callbacks: {
 		async session({ session }) {
-			session.user!.id = "123";
-			session.user!.stripeCustomerId = "test";
-			session.user!.isActive = true;
-			session.user!.subscriptionId = "test";
+			const createUserParmas = {
+				TableName: process.env.TABLE_NAME,
+				Item: {
+					name: "test",
+					isActive: false,
+				},
+			};
+
+			await docClient.send(new PutCommand(createUserParmas));
 			return session;
 		},
 	},
